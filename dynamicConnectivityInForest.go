@@ -41,7 +41,7 @@ func processQueries(queries []Query, eulerTourInfo *eulertourtree.EulerTourInfo)
 
 // Processes the list of queries sequentially and records the check
 // connectivity operation as eith true/false and returns this list
-// This is a special case of the dynmaic connectivity problem, wherein cut operations
+// This is a special case of the dynamic connectivity problem, wherein cut operations
 // are assumed to split a tree in two and each link operation is assumed to connect
 // two previously unconnected vertices and not close any loops
 func CheckDynamicConnectivity(queries []Query, graph [][]int) []bool {
