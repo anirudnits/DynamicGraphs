@@ -46,6 +46,8 @@ func isLeaf(node *treeNode) bool {
 	return node.left == nil && node.right == nil
 }
 
+// Time Complexity: O(h), h is the height of the tree
+// For splay tree, its amortized O(logn), n is the number of nodes
 func rightMostNode(root *treeNode) *treeNode {
 	for root.right != nil {
 		root = root.right
@@ -54,12 +56,42 @@ func rightMostNode(root *treeNode) *treeNode {
 	return root
 }
 
+// Time Complexity: O(h), h is the height of the tree
+// For splay tree, its amortized O(logn), n is the number of nodes
 func leftMostNode(root *treeNode) *treeNode {
 	for root.left != nil {
 		root = root.left
 	}
 
 	return root
+}
+
+// Time Complexity: O(h), h is the height of the tree
+// For splay tree, its amortized O(logn), n is the number of nodes
+func inorderSuccessor(node *treeNode) *treeNode {
+	if node.right != nil {
+		return leftMostNode(node.right)
+	}
+
+	for node.parent != nil && node.parent.left != node {
+		node = node.parent
+	}
+
+	return node.parent
+}
+
+// Time Complexity: O(h), h is the height of the tree
+// For splay tree, its amortized O(logn), n is the number of nodes
+func inorderPredecessor(node *treeNode) *treeNode {
+	if node.left != nil {
+		return rightMostNode(node.left)
+	}
+
+	for node.parent != nil && node.parent.right != node {
+		node = node.parent
+	}
+
+	return node.parent
 }
 
 // The function takes the node and returns one of the mutiple splay conditions that might apply:
@@ -119,5 +151,27 @@ func splay(node *treeNode) {
 		rightRotate(parent)
 		leftRotate(grandParent)
 	}
+}
 
+func splayToRoot(node *treeNode) {
+	for node.parent != nil {
+		splay(node)
+	}
+}
+
+func splitTree(node *treeNode) {
+	successor := inorderSuccessor(node)
+	splayToRoot(successor)
+
+	// cut the left link to split the tree node
+	node.parent = nil
+	successor.left = nil
+}
+
+func joinTrees(root1, root2 *treeNode) {
+	maxElementTree1 := rightMostNode(root1)
+	splayToRoot(maxElementTree1)
+
+	maxElementTree1.right = root2
+	root2.parent = maxElementTree1
 }
