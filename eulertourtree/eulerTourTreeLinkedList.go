@@ -9,7 +9,6 @@ type LLNode struct {
 type EulerTourInfo struct {
 	firstInstance map[int]*LLNode
 	lastInstance  map[int]*LLNode
-	visited       []bool
 }
 
 func createEulerTourInfo(n int) *EulerTourInfo {
@@ -17,7 +16,6 @@ func createEulerTourInfo(n int) *EulerTourInfo {
 
 	ret.firstInstance = make(map[int]*LLNode)
 	ret.lastInstance = make(map[int]*LLNode)
-	ret.visited = make([]bool, n)
 
 	return ret
 }
@@ -127,8 +125,8 @@ func searchLL(node *LLNode, value int) bool {
 // Traverses the connected component using an Euler Tour and returns the
 // head and tail of the linked list created to store the traversal.
 // Time Complexity: O(v), v is the size of the subtree rooted at vertex
-func eulerTour(vertex int, graph [][]int, helper *EulerTourInfo) (*LLNode, *LLNode) {
-	helper.visited[vertex] = true
+func eulerTour(vertex int, graph [][]int, helper *EulerTourInfo, visited []bool) (*LLNode, *LLNode) {
+	visited[vertex] = true
 
 	vertexNode := createLLNode(vertex)
 
@@ -136,8 +134,8 @@ func eulerTour(vertex int, graph [][]int, helper *EulerTourInfo) (*LLNode, *LLNo
 	head, tail := vertexNode, vertexNode
 
 	for _, neighbor := range graph[vertex] {
-		if !helper.visited[neighbor] {
-			neighbor_head, neighbor_tail := eulerTour(neighbor, graph, helper)
+		if !visited[neighbor] {
+			neighbor_head, neighbor_tail := eulerTour(neighbor, graph, helper, visited)
 
 			vertexEndNode := createLLNode(vertex)
 			neighbor_head, neighbor_tail = concatenateLL(
@@ -270,10 +268,11 @@ func InitiateEulerTree(graph [][]int) *EulerTourInfo {
 	n := len(graph)
 
 	helper := createEulerTourInfo(n)
+	visited := make([]bool, n)
 
 	for vertex := 0; vertex < n; vertex++ {
-		if !helper.visited[vertex] {
-			eulerTour(vertex, graph, helper)
+		if !visited[vertex] {
+			eulerTour(vertex, graph, helper, visited)
 		}
 	}
 
