@@ -162,6 +162,32 @@ func getHeadLL(node *LLNode, helper *EulerTourInfo) *LLNode {
 	return node
 }
 
+// Time Complexity = O(h), h is the height of the tree
+func nearestNextNodeWithValue(node *LLNode, value int, helper *EulerTourInfo) *LLNode {
+	for node != nil && node.next != nil && node.next.value != value {
+		node = helper.lastInstance[node.next.value]
+	}
+
+	if node == nil {
+		return nil
+	} else {
+		return node.next
+	}
+}
+
+// Time Complexity = O(h), h is the height of the tree
+func nearestPrevNodeWithValue(node *LLNode, value int, helper *EulerTourInfo) *LLNode {
+	for node != nil && node.prev != nil && node.prev.value != value {
+		node = helper.firstInstance[node.prev.value]
+	}
+
+	if node == nil {
+		return nil
+	} else {
+		return node.prev
+	}
+}
+
 // Time Complexity = O(h)
 func reRoot(newRoot int, helper *EulerTourInfo) (*LLNode, *LLNode) {
 	firstInstance, lastInstance := helper.firstInstance[newRoot], helper.lastInstance[newRoot]
@@ -175,19 +201,40 @@ func reRoot(newRoot int, helper *EulerTourInfo) (*LLNode, *LLNode) {
 		panic("There's something wrong in the euler tour representation")
 	}
 
-	precSectionHead, precSectionTail := getHeadLL(firstInstance, helper), firstInstance.prev
-	succSectionHead, succSectionTail := lastInstance.next, helper.lastInstance[precSectionHead.value]
+	// cut out the section of newRoot's subtree
+	// This would split the suler tour into 3 sections
+	// e1 : the section before the first instance of newRoot
+	// v: the section with newRoot's subtree
+	// e2: the section after the last instance of newRoot
+
+	e1Head, e1Tail := getHeadLL(firstInstance, helper), firstInstance.prev
+	e2Head, e2Tail := lastInstance.next, helper.lastInstance[e1Head.value]
 
 	deleteLinkPrev(firstInstance)
 	deleteLinkNext(lastInstance)
 
-	precSectionHead, precSectionTail = removeNodeFront(precSectionHead, precSectionTail)
+	e1Head, e1Tail = removeNodeFront(e1Head, e1Tail)
 
+	// Update the first and last instance of the affected vertices
+	// i.e e2Tail and e1Head, considering the assumptions
+	// e1Head.value(before the deletion) == e2Tail.value and e1Tail.value = e2Head.value
+
+	helper.firstInstance[e1Tail.value] = e2Head
+	helper.firstInstance[e1Tail.value] = e1Tail
+
+	// e2Tail will be the current root before the rerooting
+	helper.firstInstance[e2Tail.value] = nearestNextNodeWithValue(e2Head, e2Tail.value, helper)
+	helper.lastInstance[e2Tail.value] = nearestPrevNodeWithValue(e1Tail, e1Tail.value, helper)
+	if helper.lastInstance[e2Tail.value] == nil {
+		helper.lastInstance[e2Tail.value] = e2Tail
+	}
+
+	// concatenate e2 and e1 sections
 	aggregatedSectionHead, aggregatedSectionTail := concatenateLL(
-		succSectionHead,
-		succSectionTail,
-		precSectionHead,
-		precSectionTail,
+		e2Head,
+		e2Tail,
+		e1Head,
+		e1Tail,
 	)
 
 	vertexNode := createLLNode(newRoot)
