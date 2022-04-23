@@ -46,9 +46,13 @@ func isLeaf(node *treeNode) bool {
 	return node.left == nil && node.right == nil
 }
 
+func isRoot(node *treeNode) bool {
+	return node.parent == nil
+}
+
 // Time Complexity: O(h), h is the height of the tree
 // For splay tree, its amortized O(logn), n is the number of nodes
-func rightMostNode(root *treeNode) *treeNode {
+func getRightMostNode(root *treeNode) *treeNode {
 	for root.right != nil {
 		root = root.right
 	}
@@ -57,8 +61,16 @@ func rightMostNode(root *treeNode) *treeNode {
 }
 
 // Time Complexity: O(h), h is the height of the tree
+// For splay tree, its amortized O(logn): n is the number of nodes
+func getRoot(node *treeNode) {
+	for !isRoot(node) {
+		node = node.parent
+	}
+}
+
+// Time Complexity: O(h), h is the height of the tree
 // For splay tree, its amortized O(logn), n is the number of nodes
-func leftMostNode(root *treeNode) *treeNode {
+func getLeftMostNode(root *treeNode) *treeNode {
 	for root.left != nil {
 		root = root.left
 	}
@@ -70,7 +82,7 @@ func leftMostNode(root *treeNode) *treeNode {
 // For splay tree, its amortized O(logn), n is the number of nodes
 func inorderSuccessor(node *treeNode) *treeNode {
 	if node.right != nil {
-		return leftMostNode(node.right)
+		return getLeftMostNode(node.right)
 	}
 
 	for node.parent != nil && node.parent.left != node {
@@ -84,7 +96,7 @@ func inorderSuccessor(node *treeNode) *treeNode {
 // For splay tree, its amortized O(logn), n is the number of nodes
 func inorderPredecessor(node *treeNode) *treeNode {
 	if node.left != nil {
-		return rightMostNode(node.left)
+		return getRightMostNode(node.left)
 	}
 
 	for node.parent != nil && node.parent.right != node {
@@ -159,6 +171,39 @@ func splayToRoot(node *treeNode) {
 	}
 }
 
+func insertAtRightMost(node *treeNode, root *treeNode) {
+	rightMostNode := getRightMostNode(root)
+
+	rightMostNode.right = node
+	node.parent = rightMostNode
+}
+
+func insert(node *treeNode, root *treeNode) {
+	insertAtRightMost(node, root)
+
+	splayToRoot(node)
+}
+
+func delete(node *treeNode) {
+	splayToRoot(node)
+
+	leftSubtree := node.left
+	rightSubtree := node.right
+
+	node.left = nil
+	node.right = nil
+
+	leftSubtree.parent = nil
+	rightSubtree.parent = nil
+
+	rightMostNodeLeftSubtree := getRightMostNode(leftSubtree)
+	splayToRoot(rightMostNodeLeftSubtree)
+
+	rightMostNodeLeftSubtree.right = rightSubtree
+}
+
+// Spliting the tree at node
+// Amortized Time Complexity: O(logn)
 func splitTree(node *treeNode) {
 	successor := inorderSuccessor(node)
 	splayToRoot(successor)
@@ -168,8 +213,10 @@ func splitTree(node *treeNode) {
 	successor.left = nil
 }
 
+// Joining two trees, assuming all nodes in root2 are larger
+// than nodes in root1
 func joinTrees(root1, root2 *treeNode) {
-	maxElementTree1 := rightMostNode(root1)
+	maxElementTree1 := getRightMostNode(root1)
 	splayToRoot(maxElementTree1)
 
 	maxElementTree1.right = root2
