@@ -13,6 +13,7 @@ func isElement(edge Edge, mapper map[Edge]*treeNode) bool {
 
 type EulerTourInfoSplay struct {
 	// TODO: examine whether I could map an edge pointer to a treenode pointer
+	// Doesn't work in simple form: https://go.dev/play/p/jp2xhA9P4Ei
 	edgeNodeMapper map[Edge]*treeNode
 	visited        []bool
 }
