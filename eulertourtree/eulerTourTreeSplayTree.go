@@ -135,6 +135,10 @@ func cut(u, v int, helper *EulerTourInfoSplay) {
 	joinTrees(B1, B2) // to get B
 	joinTrees(A, C)
 
+	// Delete edges {u, v} and {v, u}
+	delete(helper.edgeNodeMapper, Edge{u, v})
+	delete(helper.edgeNodeMapper, Edge{v, u})
+
 	splayToRoot(helper.edgeNodeMapper[edgeU])
 	splayToRoot(helper.edgeNodeMapper[edgeV])
 

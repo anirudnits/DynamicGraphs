@@ -192,7 +192,7 @@ func insert(node *treeNode, root *treeNode) *treeNode {
 	return node
 }
 
-func delete(node *treeNode) {
+func deleteTreeNode(node *treeNode) {
 	splayToRoot(node)
 
 	leftSubtree := node.left
