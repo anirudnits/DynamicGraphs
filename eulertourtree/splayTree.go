@@ -1,14 +1,14 @@
 package eulertourtree
 
 type treeNode struct {
-	value     int
+	value     interface{}
 	dummyComp int // dummy comparison value used in insertion
 	left      *treeNode
 	right     *treeNode
 	parent    *treeNode
 }
 
-func createNode(value int) *treeNode {
+func createNode(value interface{}) *treeNode {
 	return &treeNode{
 		value:     value,
 		dummyComp: 0,
@@ -62,10 +62,12 @@ func getRightMostNode(root *treeNode) *treeNode {
 
 // Time Complexity: O(h), h is the height of the tree
 // For splay tree, its amortized O(logn): n is the number of nodes
-func getRoot(node *treeNode) {
+func getRoot(node *treeNode) *treeNode {
 	for !isRoot(node) {
 		node = node.parent
 	}
+
+	return node
 }
 
 // Time Complexity: O(h), h is the height of the tree
@@ -178,10 +180,16 @@ func insertAtRightMost(node *treeNode, root *treeNode) {
 	node.parent = rightMostNode
 }
 
-func insert(node *treeNode, root *treeNode) {
+func insert(node *treeNode, root *treeNode) *treeNode {
+	if root == nil {
+		return node
+	}
+
 	insertAtRightMost(node, root)
 
 	splayToRoot(node)
+
+	return node
 }
 
 func delete(node *treeNode) {
@@ -202,15 +210,36 @@ func delete(node *treeNode) {
 	rightMostNodeLeftSubtree.right = rightSubtree
 }
 
-// Spliting the tree at node
+// Spliting the tree at node, into 2 parts
+// A: The part of the tree before node(including the node) and
+// B: the part of the tree after node
 // Amortized Time Complexity: O(logn)
-func splitTree(node *treeNode) {
+// Returns the roots of the two trees formed in order (A, B)
+func rightSplitTreeAtNode(node *treeNode) (*treeNode, *treeNode) {
 	successor := inorderSuccessor(node)
 	splayToRoot(successor)
 
 	// cut the left link to split the tree node
 	node.parent = nil
 	successor.left = nil
+
+	return node, successor
+}
+
+// Spliting the tree at node, into 2 parts
+// A: The part of the tree before node and
+// B: the part of the tree after node(including the node)
+// Amortized Time Complexity: O(logn)
+// Returns the roots of the two trees formed in order (A, B)
+func leftSplitTreeAtNode(node *treeNode) (*treeNode, *treeNode) {
+	predecessor := inorderPredecessor(node)
+	splayToRoot(predecessor)
+
+	// cut the right link to split the tree
+	node.parent = nil
+	predecessor.right = nil
+
+	return predecessor, node
 }
 
 // Joining two trees, assuming all nodes in root2 are larger
