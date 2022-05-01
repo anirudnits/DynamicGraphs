@@ -1,4 +1,4 @@
-package eulertourtree
+package eulertourtreesplay
 
 type treeNode struct {
 	value     interface{}
