@@ -10,7 +10,7 @@ type Query struct {
 	vertex2   int
 }
 
-func processQueries(queries []Query, eulerTourInfo *eulertourtree.EulerTourInfo) []bool {
+func processQueries(queries []Query) []bool {
 	connectivity := make([]bool, 0)
 
 	for _, query := range queries {
@@ -18,20 +18,17 @@ func processQueries(queries []Query, eulerTourInfo *eulertourtree.EulerTourInfo)
 			connectivityCheck := eulertourtree.Is_Connected(
 				query.vertex1,
 				query.vertex2,
-				eulerTourInfo,
 			)
 			connectivity = append(connectivity, connectivityCheck)
 		} else if query.operation == "link" {
 			eulertourtree.Link(
 				query.vertex1,
 				query.vertex2,
-				eulerTourInfo,
 			)
 		} else if query.operation == "cut" {
 			eulertourtree.Cut(
 				query.vertex1,
 				query.vertex2,
-				eulerTourInfo,
 			)
 		}
 	}
@@ -45,7 +42,7 @@ func processQueries(queries []Query, eulerTourInfo *eulertourtree.EulerTourInfo)
 // are assumed to split a tree in two and each link operation is assumed to connect
 // two previously unconnected vertices and not close any loops
 func CheckDynamicConnectivity(queries []Query, graph [][]int) []bool {
-	eulerTourInfo := eulertourtree.InitiateEulerTree(graph)
+	eulertourtree.InitiateEulerTree(graph)
 
-	return processQueries(queries, eulerTourInfo)
+	return processQueries(queries)
 }
