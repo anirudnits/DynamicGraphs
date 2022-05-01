@@ -11,6 +11,8 @@ type EulerTourInfo struct {
 	lastInstance  map[int]*LLNode
 }
 
+var helper *EulerTourInfo
+
 func createEulerTourInfo(n int) *EulerTourInfo {
 	ret := &EulerTourInfo{}
 
@@ -125,7 +127,7 @@ func searchLL(node *LLNode, value int) bool {
 // Traverses the connected component using an Euler Tour and returns the
 // head and tail of the linked list created to store the traversal.
 // Time Complexity: O(v), v is the size of the subtree rooted at vertex
-func eulerTour(vertex int, graph [][]int, helper *EulerTourInfo, visited []bool) (*LLNode, *LLNode) {
+func eulerTour(vertex int, graph [][]int, visited []bool) (*LLNode, *LLNode) {
 	visited[vertex] = true
 
 	vertexNode := createLLNode(vertex)
@@ -135,7 +137,7 @@ func eulerTour(vertex int, graph [][]int, helper *EulerTourInfo, visited []bool)
 
 	for _, neighbor := range graph[vertex] {
 		if !visited[neighbor] {
-			neighbor_head, neighbor_tail := eulerTour(neighbor, graph, helper, visited)
+			neighbor_head, neighbor_tail := eulerTour(neighbor, graph, visited)
 
 			vertexEndNode := createLLNode(vertex)
 			neighbor_head, neighbor_tail = concatenateLL(
@@ -154,7 +156,7 @@ func eulerTour(vertex int, graph [][]int, helper *EulerTourInfo, visited []bool)
 }
 
 // Time Complexity = O(h), h is the height of the tree
-func getHeadLL(node *LLNode, helper *EulerTourInfo) *LLNode {
+func getHeadLL(node *LLNode) *LLNode {
 	for node.prev != nil {
 		node = helper.firstInstance[node.prev.value]
 	}
@@ -163,7 +165,7 @@ func getHeadLL(node *LLNode, helper *EulerTourInfo) *LLNode {
 }
 
 // Time Complexity = O(h), h is the height of the tree
-func nearestNextNodeWithValue(node *LLNode, value int, helper *EulerTourInfo) *LLNode {
+func nearestNextNodeWithValue(node *LLNode, value int) *LLNode {
 	for node != nil && node.next != nil && node.next.value != value {
 		node = helper.lastInstance[node.next.value]
 	}
@@ -189,7 +191,7 @@ func nearestPrevNodeWithValue(node *LLNode, value int, helper *EulerTourInfo) *L
 }
 
 // Time Complexity = O(h)
-func reRoot(newRoot int, helper *EulerTourInfo) (*LLNode, *LLNode) {
+func reRoot(newRoot int) (*LLNode, *LLNode) {
 	firstInstance, lastInstance := helper.firstInstance[newRoot], helper.lastInstance[newRoot]
 
 	if firstInstance.prev == nil && lastInstance.next == nil {
@@ -207,7 +209,7 @@ func reRoot(newRoot int, helper *EulerTourInfo) (*LLNode, *LLNode) {
 	// v: the section with newRoot's subtree
 	// e2: the section after the last instance of newRoot
 
-	e1Head, e1Tail := getHeadLL(firstInstance, helper), firstInstance.prev
+	e1Head, e1Tail := getHeadLL(firstInstance), firstInstance.prev
 	e2Head, e2Tail := lastInstance.next, helper.lastInstance[e1Head.value]
 
 	deleteLinkPrev(firstInstance)
@@ -223,7 +225,7 @@ func reRoot(newRoot int, helper *EulerTourInfo) (*LLNode, *LLNode) {
 	helper.firstInstance[e1Tail.value] = e1Tail
 
 	// e2Tail will be the current root before the rerooting
-	helper.firstInstance[e2Tail.value] = nearestNextNodeWithValue(e2Head, e2Tail.value, helper)
+	helper.firstInstance[e2Tail.value] = nearestNextNodeWithValue(e2Head, e2Tail.value)
 	helper.lastInstance[e2Tail.value] = nearestPrevNodeWithValue(e1Tail, e1Tail.value, helper)
 	if helper.lastInstance[e2Tail.value] == nil {
 		helper.lastInstance[e2Tail.value] = e2Tail
@@ -253,9 +255,9 @@ func reRoot(newRoot int, helper *EulerTourInfo) (*LLNode, *LLNode) {
 
 // Adds the link(edge) u-v, assuming that u-v are not currently connected
 // Time Complexity: O(h)
-func Link(u, v int, helper *EulerTourInfo) {
-	firstLLHead, firstLLTail := reRoot(u, helper)
-	sndLLHead, sndLLTail := reRoot(v, helper)
+func Link(u, v int) {
+	firstLLHead, firstLLTail := reRoot(u)
+	sndLLHead, sndLLTail := reRoot(v)
 
 	connectedHead, connectedTail := concatenateLL(firstLLHead, firstLLTail, sndLLHead, sndLLTail)
 
@@ -280,8 +282,8 @@ func cutSectionLeft(cutNode *LLNode) {
 
 // Cuts the link(edge) u-v, assuming that u-v exists
 // Time Complexity: O(h)
-func Cut(u, v int, helper *EulerTourInfo) {
-	reRoot(u, helper)
+func Cut(u, v int) {
+	reRoot(u)
 
 	vHead, vTail := helper.firstInstance[v], helper.lastInstance[v]
 
@@ -303,25 +305,23 @@ func Cut(u, v int, helper *EulerTourInfo) {
 
 // Returns a bool indicating whether u and v are connected or not
 // Time Complexity: O(n), n is the number of vertices in the graph
-func Is_Connected(u int, v int, helper *EulerTourInfo) bool {
+func Is_Connected(u int, v int) bool {
 	return searchLL(helper.firstInstance[u], v)
 }
 
 // Initiates the initial euler tour of the graph
-// Returns the EulerTourInfo, which stores information about the first and last instances
-// of the vertices. Also this information is used in and is a reqd parameter in other functions
+// of the vertices.
 // Time Complexity: O(n), n is the number of vertices
-func InitiateEulerTree(graph [][]int) *EulerTourInfo {
+func InitiateEulerTree(graph [][]int) {
 	n := len(graph)
 
-	helper := createEulerTourInfo(n)
+	helper = createEulerTourInfo(n)
 	visited := make([]bool, n)
 
 	for vertex := 0; vertex < n; vertex++ {
 		if !visited[vertex] {
-			eulerTour(vertex, graph, helper, visited)
+			eulerTour(vertex, graph, visited)
 		}
 	}
 
-	return helper
 }
